@@ -1,11 +1,11 @@
 package mealy.model
 
 class Machine(
-    private var states: List[State],
+    private val states: List[State],
     private val initialState: State,
     private val inputAlphabet: Set[Char],
     private val outputAlphabet: Set[Char],
-    private var machineTransitions: List[Transition]
+    private val machineTransitions: List[Transition]
 ) {
   var producedOutput: List[Char] = List.empty
   var machineTrace: List[Transition] = List.empty
@@ -16,6 +16,17 @@ class Machine(
   for transition <- machineTransitions do
     transition.transitionSource.addOutgoingTransition(transition)
     transition.tranditionDest.addIncominTransition(transition)
+
+  def machineStates = states
+  def machineInitialState  = initialState
+  def machineInputAlphabet = inputAlphabet
+  def machineOutputAlphabet = outputAlphabet
+  def getMachineTransitions = machineTransitions
+  def getProducedOutput: List[Char] = producedOutput
+  def getTrace: List[Transition] = machineTrace
+  def getPendingInput: Boolean = pendingInput
+  def getInputSequence: List[Char] = inputSequence
+  def getCurrentState: State = currentState
 
   def setInputSequence(argInputSeq: String): Unit =
     if !argInputSeq.map(inputAlphabet.contains(_)).reduce(_ & _) then
