@@ -7,3 +7,4 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+target/streams/compile/bloopAnalysisOut/_global/streams/inc_compile_3.zip

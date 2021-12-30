@@ -23,15 +23,6 @@ class Machine(
       inputSequence = argInputSeq
       pendingInput = true
 
-  /* def setMachineTransitions(argTransitions: List[Transition]): Unit =
-    for transition <- argTransitions do
-      machineTransitions = machineTransitions.appended(transition)
-      transition.sourceState.addOutgoingTransition(transition)
-      transition.destState.addIncominTransition(transition)
-
-  def setMachineTransitions(argTransitions: Transition*): Unit =
-    setMachineTransitions(argTransitions.toList) */
-
   def getNextInputToken =
     val token = inputSequence(0)
     inputSequence = inputSequence.slice(1, inputSequence.size)
