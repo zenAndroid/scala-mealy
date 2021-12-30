@@ -1,6 +1,14 @@
 package mealy.model
 
-def getApplicableTransitions(state: State,triggerChar: Char): List[Transition] =
+@throws(classOf[NoTransitionFound])
+def getApplicableTransitions(argState: State,triggerChar: Char): List[Transition] =
     def filterPredicate(transition: Transition): Boolean =
       transition.isValid && transition.isTriggeredBy(triggerChar)
-    state.getOutgoing.filter(filterPredicate)
+    val retVal = argState.getOutgoing.filter(filterPredicate)
+    if retVal.isEmpty 
+      then 
+          throw new NoTransitionFound(
+            s"No transition found from this state. State: $argState, trigger: $triggerChar."
+          )
+    else
+      retVal
