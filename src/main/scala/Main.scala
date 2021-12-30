@@ -16,17 +16,17 @@ import mealy.model.*
     List(trann, abcde, thirf, forth)
   )
 
-  mach setInputSequence "abbabababa"
+  mach.setInputSequence("abbabababa")
   // mach.nonDeterministicConsume
 
   // println
   val mach2 = getNDMachine
   mach2 setInputSequence "abab"
   // mach2.nonDeterministicConsume
-  println
+  println(mach2.toDot)
 
   val mach3 = getDMachine
 
-  mach3 setInputSequence "bbaafb"
+  mach3.setInputSequence("bbaab")
 
   mach3.nonDeterministicConsume

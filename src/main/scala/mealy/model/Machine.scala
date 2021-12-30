@@ -17,7 +17,6 @@ class Machine(
     transition.transitionSource.addOutgoingTransition(transition)
     transition.tranditionDest.addIncominTransition(transition)
 
-  @throws(classOf[BadInputException])
   def setInputSequence(argInputSeq: String): Unit =
     if !argInputSeq.map(inputAlphabet.contains(_)).reduce(_ & _) then
       throw new BadInputException(s"Not in input alphabet: ${argInputSeq}")
@@ -31,7 +30,6 @@ class Machine(
     if inputSequence.isEmpty then pendingInput = false
     token
 
-  @throws(classOf[NoTransitionFound])  
   def chooseTransition(argTransition: List[Transition]) =
     if argTransition.size == 0 then
       throw new NoTransitionFound(
@@ -48,11 +46,14 @@ class Machine(
           getApplicableTransitions(currentState, getNextInputToken)
         var actualTransition = chooseTransition(possibleTransitions)
         takeTransition(actualTransition)
-      catch 
-        case ntf: NoTransitionFound => { println(ntf.getMessage) ; System.exit(0) }
-        case tna: TransitionNotApplicable => { println(tna.getMessage) ; System.exit(0) }
+      catch
+        case ntf: NoTransitionFound => {
+          println(ntf.getMessage); System.exit(0)
+        }
+        case tna: TransitionNotApplicable => {
+          println(tna.getMessage); System.exit(0)
+        }
 
-  @throws(classOf[TransitionNotApplicable])
   def takeTransition(argTransition: Transition) =
     if argTransition.transitionSource.getName.equals(currentState.getName) then
       argTransition.setTaken
@@ -65,12 +66,12 @@ class Machine(
           s"${argTransition.transitionSource}."
       )
 
-  def processOutput(output: Char) = 
+  def processOutput(output: Char) =
     producedOutput = producedOutput :+ output
     println(s"|$output|, current state is ${currentState.getName}. ")
 
   def toDot =
-    s"""digraph Automaton {
+    s"""digraph {
       node [shape=point] INIT;
       ${currentState.getName} [shape=\"doublecircle\"];
       node [shape=circle];
@@ -87,5 +88,4 @@ class Machine(
 
   override def toString =
     s"Machine{states=${states}, initial = ${initialState}, transitions=${machineTransitions}}"
-
 }
