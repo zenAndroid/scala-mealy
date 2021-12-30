@@ -8,6 +8,7 @@ class Machine(
     private var machineTransitions: List[Transition]
 ) {
   var producedOutput: List[Char] = List.empty
+  var machineTrace: List[Transition] = List.empty
   var pendingInput: Boolean = false
   var inputSequence: List[Char] = List.empty
   var currentState: State = initialState
@@ -55,15 +56,18 @@ class Machine(
   def takeTransition(argTransition: Transition) =
     if argTransition.transitionSource.getName.equals(currentState.getName) then
       argTransition.setTaken
-      processOutput(argTransition.transitionOutput)
       currentState = argTransition.tranditionDest
+      machineTrace = machineTrace :+ argTransition
+      processOutput(argTransition.transitionOutput)
     else
       throw new TransitionNotApplicable(
         s"Transition not applicable from this state. arg: $argTransition, current transitions source" +
           s"${argTransition.transitionSource}."
       )
 
-  def processOutput(output: Char) = println(output)
+  def processOutput(output: Char) = 
+    producedOutput = producedOutput :+ output
+    println(s"|$output|, current state is ${currentState.getName}. ")
 
   def toDot =
     s"""digraph Automaton {
