@@ -34,7 +34,7 @@ class Machine(
   def chooseTransition(argTransition: List[Transition]) =
     if argTransition.size == 0 then
       throw new NoTransitionFound(
-        s"No transitions found from the current state, State: ${currentState}, argTransition: ${argTransition}"
+        s"No transitions found from the current state, ${currentState}, argTransition: ${argTransition}"
       )
     else
       val randomIndex = scala.util.Random.nextInt(argTransition.size)
@@ -48,8 +48,8 @@ class Machine(
         var actualTransition = chooseTransition(possibleTransitions)
         takeTransition(actualTransition)
       catch 
-        case ntf: NoTransitionFound => println(ntf.getMessage)
-        case tna: TransitionNotApplicable => println(tna.getMessage)
+        case ntf: NoTransitionFound => { println(ntf.getMessage) ; System.exit(0) }
+        case tna: TransitionNotApplicable => { println(tna.getMessage) ; System.exit(0) }
 
   @throws(classOf[TransitionNotApplicable])
   def takeTransition(argTransition: Transition) =
@@ -63,7 +63,7 @@ class Machine(
           s"${argTransition.transitionSource}."
       )
 
-  def processOutput(output: Char) = print(output)
+  def processOutput(output: Char) = println(output)
 
   def toDot =
     s"""digraph Automaton {

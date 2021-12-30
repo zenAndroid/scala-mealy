@@ -8,7 +8,10 @@ def getApplicableTransitions(argState: State,triggerChar: Char): List[Transition
     if retVal.isEmpty 
       then 
           throw new NoTransitionFound(
-            s"No transition found from this state. State: $argState, trigger: $triggerChar."
+            s"No transition found from this state: $argState, trigger: $triggerChar."
           )
     else
       retVal
+
+
+def stringToList(str: String) = str.toList
