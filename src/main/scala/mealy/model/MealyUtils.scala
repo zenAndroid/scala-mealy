@@ -12,6 +12,3 @@ def getApplicableTransitions(argState: State,triggerChar: Char): List[Transition
           )
     else
       retVal
-
-
-def stringToList(str: String) = str.toList
