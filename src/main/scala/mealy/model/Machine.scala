@@ -16,9 +16,10 @@ class Machine(
     transition.transitionSource.addOutgoingTransition(transition)
     transition.tranditionDest.addIncominTransition(transition)
 
+  @throws(classOf[BadInputException])
   def setInputSequence(argInputSeq: List[Char]): Unit =
     if !argInputSeq.map(inputAlphabet.contains(_)).reduce(_ & _) then
-      throw new Exception(s"Not in input alphabet: ${argInputSeq}")
+      throw new BadInputException(s"Not in input alphabet: ${argInputSeq}")
     else
       inputSequence = argInputSeq
       pendingInput = true
@@ -29,21 +30,38 @@ class Machine(
     if inputSequence.isEmpty then pendingInput = false
     token
 
+  @throws(classOf[NoTransitionFound])  
   def chooseTransition(argTransition: List[Transition]) =
-    val randomIndex = scala.util.Random.nextInt(argTransition.size)
-    argTransition(randomIndex)
+    if argTransition.size == 0 then
+      throw new NoTransitionFound(
+        s"No transitions found from the current state, State: ${currentState}, argTransition: ${argTransition}"
+      )
+    else
+      val randomIndex = scala.util.Random.nextInt(argTransition.size)
+      argTransition(randomIndex)
 
   def nonDeterministicConsume =
     while pendingInput do
-      var possibleTransitions =
-        getApplicableTransitions(currentState, getNextInputToken)
-      var actualTransition = chooseTransition(possibleTransitions)
-      takeTransition(actualTransition)
+      try
+        var possibleTransitions =
+          getApplicableTransitions(currentState, getNextInputToken)
+        var actualTransition = chooseTransition(possibleTransitions)
+        takeTransition(actualTransition)
+      catch 
+        case ntf: NoTransitionFound => println(ntf.getMessage)
+        case tna: TransitionNotApplicable => println(tna.getMessage)
 
+  @throws(classOf[TransitionNotApplicable])
   def takeTransition(argTransition: Transition) =
-    argTransition.setTaken
-    processOutput(argTransition.transitionOutput)
-    currentState = argTransition.tranditionDest
+    if argTransition.transitionSource.getName.equals(currentState.getName) then
+      argTransition.setTaken
+      processOutput(argTransition.transitionOutput)
+      currentState = argTransition.tranditionDest
+    else
+      throw new TransitionNotApplicable(
+        s"Transition not applicable from this state. arg: $argTransition, current transitions source" +
+          s"${argTransition.transitionSource}."
+      )
 
   def processOutput(output: Char) = print(output)
 
