@@ -16,6 +16,6 @@ import mealy.model.*
     List(trann, secondTran, thirf, forth)
   )
 
-  mach.setInputSequence(List('a', 'b', 'a'))
+  mach.setInputSequence("ababababa")
   mach.nonDeterministicConsume // Seems to work, next up:
   println

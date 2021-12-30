@@ -17,11 +17,11 @@ class Machine(
     transition.tranditionDest.addIncominTransition(transition)
 
   @throws(classOf[BadInputException])
-  def setInputSequence(argInputSeq: List[Char]): Unit =
+  def setInputSequence(argInputSeq: String): Unit =
     if !argInputSeq.map(inputAlphabet.contains(_)).reduce(_ & _) then
       throw new BadInputException(s"Not in input alphabet: ${argInputSeq}")
     else
-      inputSequence = argInputSeq
+      inputSequence = argInputSeq.toList
       pendingInput = true
 
   def getNextInputToken =
