@@ -1,33 +1,40 @@
 package mealy.model
 
+import scala.util.{Try, Success, Failure}
+
 class Machine(
     private val states: List[State],
     private val initialState: State,
     private val inputAlphabet: Set[Char],
     private val outputAlphabet: Set[Char],
     private val machineTransitions: List[Transition]
-) {
-  var producedOutput: List[Char] = List.empty
-  var machineTrace: List[Transition] = List.empty
-  var pendingInput: Boolean = false
-  var inputSequence: List[Char] = List.empty
-  var currentState: State = initialState
+):
+  private var producedOutput: List[Char] = List.empty
+  private var machineTrace: List[Transition] = List.empty
+  private var pendingInput: Boolean = false
+  private var inputSequence: List[Char] = List.empty
+  private var currentState: State = initialState
 
   for transition <- machineTransitions do
     transition.transitionSource.addOutgoingTransition(transition)
     transition.tranditionDest.addIncominTransition(transition)
 
+  /* Getters for fields */
   def machineStates = states
-  def machineInitialState  = initialState
+  def machineInitialState = initialState
   def machineInputAlphabet = inputAlphabet
   def machineOutputAlphabet = outputAlphabet
   def getMachineTransitions = machineTransitions
-  def getProducedOutput: List[Char] = producedOutput
-  def getTrace: List[Transition] = machineTrace
-  def getPendingInput: Boolean = pendingInput
-  def getInputSequence: List[Char] = inputSequence
-  def getCurrentState: State = currentState
+  def getProducedOutput = producedOutput
+  def getTrace = machineTrace
+  def getPendingInput = pendingInput
+  def getInputSequence = inputSequence
+  def getCurrentState = currentState
 
+  /* Setters for secondary fields */
+  def setProduced(argList: List[Char]) = producedOutput = argList
+  def setTrace(argTrace: List[Transition]) = machineTrace = argTrace
+  def setCurrent(argState: State) = currentState = argState
   def setInputSequence(argInputSeq: String): Unit =
     if !argInputSeq.map(inputAlphabet.contains(_)).reduce(_ & _) then
       throw new BadInputException(s"Not in input alphabet: ${argInputSeq}")
@@ -53,9 +60,9 @@ class Machine(
   def nonDeterministicConsume =
     while pendingInput do
       try
-        var possibleTransitions =
+        val possibleTransitions =
           getApplicableTransitions(currentState, getNextInputToken)
-        var actualTransition = chooseTransition(possibleTransitions)
+        val actualTransition = chooseTransition(possibleTransitions)
         takeTransition(actualTransition)
       catch
         case ntf: NoTransitionFound => {
@@ -99,4 +106,32 @@ class Machine(
 
   override def toString =
     s"Machine{states=${states}, initial = ${initialState}, transitions=${machineTransitions}}"
-}
+
+  def copyMachine =
+    val newStates = states.map(s => new State(s.getName))
+    val newInitState = getStateByName(currentState.getName, newStates)
+    val newTransitions =
+      machineTransitions.map(t =>
+        new Transition(
+          t.transitionTrigger,
+          t.transitionOutput,
+          getStateByName(t.transitionSource.getName, newStates),
+          getStateByName(t.tranditionDest.getName, newStates)
+        )
+      )
+
+    Machine(
+      newStates,
+      newInitState,
+      inputAlphabet,
+      outputAlphabet,
+      newTransitions
+    )
+
+  def exactMachineCopy =
+    var retVal = copyMachine
+    retVal.setInputSequence(inputSequence.mkString)
+    retVal.setProduced(producedOutput)
+    retVal.setCurrent(currentState)
+    retVal.setTrace(machineTrace)
+    retVal

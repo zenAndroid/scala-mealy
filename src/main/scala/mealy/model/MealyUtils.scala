@@ -1,6 +1,5 @@
 package mealy.model
 
-@throws(classOf[NoTransitionFound])
 def getApplicableTransitions(
     argState: State,
     triggerChar: Char
@@ -50,7 +49,7 @@ def getDMachine: Machine =
   val t6 = new Transition('b', '1', d3, d1)
   val t7 = new Transition('a', '1', d4, d1)
   val t8 = new Transition('b', '2', d4, d3)
-  
+
   Machine(
     List(d1, d2, d3, d4),
     d1,
@@ -58,3 +57,8 @@ def getDMachine: Machine =
     Set('1', '2'),
     List(t1, t2, t3, t4, t5, t6, t7, t8)
   )
+
+def getStateByName(argStateName: String, stateArray: List[State]): State =
+  stateArray.filter(_.getName == argStateName)(0)
+
+

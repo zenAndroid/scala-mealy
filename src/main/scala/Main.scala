@@ -22,11 +22,7 @@ import mealy.model.*
   // println
   val mach2 = getNDMachine
   mach2 setInputSequence "abab"
-  // mach2.nonDeterministicConsume
   println(mach2.toDot)
 
-  val mach3 = getDMachine
-
-  mach3.setInputSequence("bbaab")
-
-  mach3.nonDeterministicConsume
+  def mach3 = mach2.copyMachine
+  println(mach3.toDot)
