@@ -35,7 +35,7 @@ class Machine(
   def setProduced(argList: List[Char]) = producedOutput = argList
   def setTrace(argTrace: List[Transition]) = machineTrace = argTrace
   def setCurrent(argState: State) = currentState = argState
-  def setInputSequence(argInputSeq: String): Unit =
+  def setInputSequence(argInputSeq: String) =
     if !argInputSeq.map(inputAlphabet.contains(_)).reduce(_ & _) then
       throw new BadInputException(s"Not in input alphabet: ${argInputSeq}")
     else
@@ -58,6 +58,8 @@ class Machine(
       argTransition(randomIndex)
 
   def nonDeterministicConsume =
+    machineTrace = List.empty
+    producedOutput = List.empty
     while pendingInput do
       try
         val possibleTransitions =
@@ -77,16 +79,22 @@ class Machine(
       argTransition.setTaken
       currentState = argTransition.tranditionDest
       machineTrace = machineTrace :+ argTransition
-      processOutput(argTransition.transitionOutput)
+      processTransition(argTransition)
     else
       throw new TransitionNotApplicable(
         s"Transition not applicable from this state. arg: $argTransition, current transitions source" +
           s"${argTransition.transitionSource}."
       )
 
-  def processOutput(output: Char) =
-    producedOutput = producedOutput :+ output
-    println(s"|$output|, current state is ${currentState.getName}. ")
+  def processTransition(argTransition: Transition) =
+    producedOutput = producedOutput :+ argTransition.transitionOutput
+    val sourceName = argTransition.transitionSource.getName
+    val destName = argTransition.tranditionDest.getName
+    val trigger = argTransition.transitionTrigger
+    val output = argTransition.transitionOutput
+    println(
+      s"From $sourceName to $destName; trigger: $trigger - output : $output."
+    )
 
   def toDot =
     s"""digraph {
@@ -98,7 +106,11 @@ class Machine(
       ${
       var accumulator = ""
       for transition <- machineTransitions do
-        accumulator += s"${transition.transitionSource.getName} -> ${transition.tranditionDest.getName} [label=\"${transition.transitionTrigger}/${transition.transitionOutput}\"];\n"
+        val sourceName = transition.transitionSource.getName
+        val destName = transition.tranditionDest.getName
+        val trigger = transition.transitionTrigger
+        val output = transition.transitionOutput
+        accumulator += s"$sourceName -> $destName [label=\"$trigger/$output\"];\n"
         accumulator += "      "
       accumulator
     }
