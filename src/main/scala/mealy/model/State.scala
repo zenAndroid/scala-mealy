@@ -1,8 +1,8 @@
 package mealy.model
 class State(
     private var stateName: String = "",
-    private var inComing: List[Transition] = Nil,
-    private var outGoing: List[Transition] = Nil
+    private var inComing: List[Transition] = List.empty,
+    private var outGoing: List[Transition] = List.empty
 ):
   private val currentId = State.getID
 
