@@ -20,73 +20,65 @@ class Machine(
     transition.tranditionDest.addIncominTransition(transition)
 
   /* Getters for fields */
-  def machineStates = states
-  def machineInitialState = initialState
-  def machineInputAlphabet = inputAlphabet
-  def machineOutputAlphabet = outputAlphabet
-  def getMachineTransitions = machineTransitions
-  def getProducedOutput = producedOutput
-  def getTrace = machineTrace
-  def getPendingInput = pendingInput
-  def getInputSequence = inputSequence
-  def getCurrentState = currentState
+  def machineStates: List[State] = states
+  def machineInitialState: State = initialState
+  def machineInputAlphabet: Set[Char] = inputAlphabet
+  def machineOutputAlphabet: Set[Char] = outputAlphabet
+  def getMachineTransitions: List[Transition] = machineTransitions
+  def getProducedOutput: List[Char] = producedOutput
+  def getTrace: List[Transition] = machineTrace
+  def getPendingInput: Boolean = pendingInput
+  def getInputSequence: List[Char] = inputSequence
+  def getCurrentState: State = currentState
 
   /* Setters for secondary fields */
-  def setProduced(argList: List[Char]) = producedOutput = argList
-  def setTrace(argTrace: List[Transition]) = machineTrace = argTrace
-  def setCurrent(argState: State) = currentState = argState
+  def setProduced(argList: List[Char]): Unit = producedOutput = argList
+  def setTrace(argTrace: List[Transition]): Unit = machineTrace = argTrace
+  def setCurrent(argState: State): Unit = currentState = argState
+
   def setInputSequence(argInputSeq: String) =
+    setInputSequence_(argInputSeq) match
+      case Failure(expt) => println(expt)
+      case Success(_)    => ()
+
+  def setInputSequence_(argInputSeq: String): Try[Unit] =
     if !argInputSeq.map(inputAlphabet.contains(_)).reduce(_ & _) then
-      throw new BadInputException(s"Not in input alphabet: ${argInputSeq}")
+      Failure(new BadInputException(s"Not in input alphabet: ${argInputSeq}"))
     else
-      inputSequence = argInputSeq.toList
-      pendingInput = true
+      Success({
+        inputSequence = argInputSeq.toList
+        pendingInput = true
+      })
 
-  def getNextInputToken =
-    val token = inputSequence(0)
-    inputSequence = inputSequence.slice(1, inputSequence.size)
-    if inputSequence.isEmpty then pendingInput = false
-    token
-
-  def chooseTransition(argTransition: List[Transition]) =
-    if argTransition.size == 0 then
-      throw new NoTransitionFound(
-        s"No transitions found from the current state, ${currentState}, argTransition: ${argTransition}"
-      )
+  def getNextInputToken: Try[Char] =
+    if inputSequence.isEmpty then
+      Failure(new Exception("InputSequence is empty !"))
     else
-      val randomIndex = scala.util.Random.nextInt(argTransition.size)
-      argTransition(randomIndex)
+      val token = inputSequence.head
+      inputSequence = inputSequence.slice(1, inputSequence.size)
+      if inputSequence.isEmpty then pendingInput = false
+      Success(token)
 
-  def nonDeterministicConsume =
+  def nonDeterministicConsume: Unit =
     machineTrace = List.empty
     producedOutput = List.empty
     while pendingInput do
-      try
-        val possibleTransitions =
-          getApplicableTransitions(currentState, getNextInputToken)
-        val actualTransition = chooseTransition(possibleTransitions)
-        takeTransition(actualTransition)
-      catch
-        case ntf: NoTransitionFound => {
-          println(ntf.getMessage); System.exit(0)
-        }
-        case tna: TransitionNotApplicable => {
-          println(tna.getMessage); System.exit(0)
-        }
+      for
+        triggerChar <- getNextInputToken
+        possibleTransitions <- getApplicableTransitions(
+          currentState,
+          triggerChar
+        )
+        actualTransition <- chooseTransition(this, possibleTransitions)
+      yield takeTransition(actualTransition)
 
-  def takeTransition(argTransition: Transition) =
-    if argTransition.transitionSource.getName.equals(currentState.getName) then
-      argTransition.setTaken
-      currentState = argTransition.tranditionDest
-      machineTrace = machineTrace :+ argTransition
-      processTransition(argTransition)
-    else
-      throw new TransitionNotApplicable(
-        s"Transition not applicable from this state. arg: $argTransition, current transitions source" +
-          s"${argTransition.transitionSource}."
-      )
+  def takeTransition(argTransition: Transition): Unit =
+    argTransition.setTaken
+    currentState = argTransition.tranditionDest
+    machineTrace = machineTrace :+ argTransition
+    processTransition(argTransition)
 
-  def processTransition(argTransition: Transition) =
+  def processTransition(argTransition: Transition): Unit =
     producedOutput = producedOutput :+ argTransition.transitionOutput
     val sourceName = argTransition.transitionSource.getName
     val destName = argTransition.tranditionDest.getName
@@ -96,7 +88,7 @@ class Machine(
       s"From $sourceName to $destName; trigger: $trigger - output : $output."
     )
 
-  def toDot =
+  def toDot: String =
     s"""digraph {
       node [shape=point] INIT;
       ${currentState.getName} [shape=\"doublecircle\"];
@@ -116,34 +108,41 @@ class Machine(
     }
     }"""
 
-  override def toString =
+  override def toString: String =
     s"Machine{states=${states}, initial = ${initialState}, transitions=${machineTransitions}}"
 
-  def copyMachine =
+/*def copyMachine =
     val newStates = states.map(s => new State(s.getName))
     val newInitState = getStateByName(currentState.getName, newStates)
     val newTransitions =
       machineTransitions.map(t =>
-        new Transition(
+        for
+          sourceState <- getStateByName(t.transitionSource.getName, newStates)
+          destState <- getStateByName(t.tranditionDest.getName, newStates)
+        yield new Transition(
           t.transitionTrigger,
           t.transitionOutput,
-          getStateByName(t.transitionSource.getName, newStates),
-          getStateByName(t.tranditionDest.getName, newStates)
+          sourceState,
+          destState
         )
       )
 
-    Machine(
-      newStates,
-      newInitState,
-      inputAlphabet,
-      outputAlphabet,
-      newTransitions
-    )
+    Try {
+      Machine(
+        newStates,
+        newInitState,
+        inputAlphabet,
+        outputAlphabet,
+        newTransitions
+      )
+    }
 
   def exactMachineCopy =
-    var retVal = copyMachine
-    retVal.setInputSequence(inputSequence.mkString)
-    retVal.setProduced(producedOutput)
-    retVal.setCurrent(currentState)
-    retVal.setTrace(machineTrace)
-    retVal
+    for retVal <- copyMachine
+    yield {
+      retVal.setInputSequence(inputSequence.mkString)
+      retVal.setProduced(producedOutput)
+      retVal.setCurrent(currentState)
+      retVal.setTrace(machineTrace)
+      retVal
+    }*/

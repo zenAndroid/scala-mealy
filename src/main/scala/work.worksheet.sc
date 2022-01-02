@@ -268,3 +268,7 @@ trait Green:
 // mix in the traits as DavidBanner
 // is created
 // val hulk = new DavidBanner with Big, Angry, Green
+
+for
+  foo <- Option("Strinf")
+yield foo.head

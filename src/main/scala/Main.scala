@@ -1,4 +1,6 @@
 import mealy.model.*
+import scala.util.Failure
+import scala.util.Success
 
 @main def hello: Unit =
   val init = new State
@@ -22,7 +24,5 @@ import mealy.model.*
   // println
   val mach2 = getNDMachine
   mach2 setInputSequence "abab"
-  println(mach2.toDot)
-
-  def mach3 = mach2.copyMachine
-  println(mach3.toDot)
+  // println(mach2.toDot)
+  mach2.nonDeterministicConsume

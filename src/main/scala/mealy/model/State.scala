@@ -4,17 +4,17 @@ class State(
     private var inComing: List[Transition] = List.empty,
     private var outGoing: List[Transition] = List.empty
 ):
-  private val currentId = State.getID
+  private val currentId: Int = State.getID
 
   if stateName.equals("") then stateName = "q" + currentId.toString
 
-  def getName = stateName
-  def getOutgoing = outGoing
-  def getIncoming = inComing
-  def addIncominTransition(t: Transition) = inComing = inComing :+ t
-  def addOutgoingTransition(t: Transition) = outGoing = outGoing :+ t
+  def getName: String = stateName
+  def getOutgoing: List[Transition] = outGoing
+  def getIncoming: List[Transition] = inComing
+  def addIncominTransition(t: Transition): Unit = inComing = inComing :+ t
+  def addOutgoingTransition(t: Transition): Unit = outGoing = outGoing :+ t
 
-  override def toString =
+  override def toString: String =
     s"State{name = ${stateName}, inComing = ${inComing}, outGoing = ${outGoing}}"
 
 object State:

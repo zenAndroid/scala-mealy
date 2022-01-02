@@ -1,17 +1,43 @@
 package mealy.model
 
+import scala.util.{Try, Success, Failure}
+
 def getApplicableTransitions(
     argState: State,
     triggerChar: Char
-): List[Transition] =
+): Try[List[Transition]] =
   def filterPredicate(transition: Transition): Boolean =
-    transition.isValid && transition.isTriggeredBy(triggerChar)
+    transition.isValid && transition.isTriggeredBy(
+      triggerChar
+    ) && transition.transitionSource.getName == argState.getName
   val retVal = argState.getOutgoing.filter(filterPredicate)
   if retVal.isEmpty then
-    throw new NoTransitionFound(
+    val errorMsg =
       s"No transition found from this state: $argState, trigger: $triggerChar."
+    Failure(new NoTransitionFound(errorMsg))
+  else Success(retVal)
+
+def getStateByName(argStateName: String, stateArray: List[State]): Try[State] =
+  val filteredStateArray = stateArray.filter(_.getName == argStateName)
+  if filteredStateArray.isEmpty then
+    val errorMsg =
+      s"State not found: getStateByName: $argStateName, within this array: $stateArray"
+    Failure(new StateNotFound(errorMsg))
+  else Success(filteredStateArray.head)
+
+def chooseTransition(
+    machine: Machine,
+    argTransition: List[Transition]
+): Try[Transition] =
+  if argTransition.isEmpty then
+    Failure(
+      new NoTransitionFound(
+        s"No transitions found from the current state, ${machine.getCurrentState}, argTransition: ${argTransition}"
+      )
     )
-  else retVal
+  else
+    val randomIndex = scala.util.Random.nextInt(argTransition.size)
+    Success(argTransition(randomIndex))
 
 def getNDMachine: Machine =
   val s1 = new State("s1")
@@ -26,14 +52,14 @@ def getNDMachine: Machine =
   val t7 = new Transition('b', '2', s2, s2)
   val t8 = new Transition('b', '2', s3, s2)
   val t9 = new Transition('b', '1', s3, s1)
-  val t10 = new Transition('a', '1', s3, s2)
+  val ta = new Transition('a', '1', s3, s2)
 
   Machine(
     List(s1, s2, s3),
     s1,
     Set('a', 'b'),
     Set('1', '2'),
-    List(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10)
+    List(t1, t2, t3, t4, t5, t6, t7, t8, t9, ta)
   )
 
 def getDMachine: Machine =
@@ -57,8 +83,3 @@ def getDMachine: Machine =
     Set('1', '2'),
     List(t1, t2, t3, t4, t5, t6, t7, t8)
   )
-
-def getStateByName(argStateName: String, stateArray: List[State]): State =
-  stateArray.filter(_.getName == argStateName)(0)
-
-
