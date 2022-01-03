@@ -46,7 +46,7 @@ def getNDMachine: Machine =
   Machine(
     List(s1, s2, s3),
     s1,
-    Set('a', 'b'),
+    Set('a', 'b','c'),
     Set('1', '2'),
     List(t1, t2, t3, t4, t5, t6, t7, t8, t9, ta)
   )

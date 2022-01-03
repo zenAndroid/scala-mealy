@@ -48,7 +48,7 @@ class Machine(
     if inputSequence.isEmpty then pendingInput = false
     token
 
-  def nonDeterministicConsume : Tuple2[String,List[Transition]] =
+  def consume: Tuple2[List[Char], List[Transition]] =
     machineTrace = List.empty
     producedOutput = List.empty
     while pendingInput do
@@ -59,8 +59,33 @@ class Machine(
       catch
         case ex: (NoTransitionFound | TransitionNotApplicable) => println(ex.getMessage)
         case ex: Exception                                     => println(ex.getMessage)
-        
-    (producedOutput.mkString, machineTrace)
+
+    (producedOutput, machineTrace)
+
+  def consume(argInput: String): Tuple2[List[Char], List[Transition]] =
+    try
+      setInputSequence(argInput)
+      consume
+    catch
+      case ex: BadInputException => println(ex.getMessage)
+    
+    // Surprising that i need to explicitly mention this tuple
+    // i thought the function before the catch would take care of this
+    (producedOutput, machineTrace)
+
+
+  def consumeToken =
+    if pendingInput then
+      try
+        val possibleTransitions = getApplicableTransitionsFrom(currentState, getNextInputToken)
+        val actualTransition = chooseTransition(this, possibleTransitions)
+        takeTransition(actualTransition)
+      catch
+        case ex: (NoTransitionFound | TransitionNotApplicable) => println(ex.getMessage)
+        case ex: Exception                                     => println(ex.getMessage)
+    else
+      throw NoPendingInput("Cannot consume token: machine not pending.")
+
 
   private def takeTransition(argTransition: Transition): Unit =
     argTransition.setTaken
