@@ -1,7 +1,4 @@
 package mealy.model
-
-import scala.util.{Try, Success, Failure}
-
 class Machine(
     private val states: List[State],
     private val initialState: State,
@@ -37,45 +34,41 @@ class Machine(
   def setCurrent(argState: State): Unit          = currentState = argState
 
   def setInputSequence(argInputSeq: String) =
-    setInputSequence_(argInputSeq) match
-      case Failure(expt) => println(expt)
-      case Success(_)    => ()
-
-  def setInputSequence_(argInputSeq: String): Try[Unit] =
     if !argInputSeq.map(inputAlphabet.contains(_)).reduce(_ & _) then
-      Failure(BadInputException(s"Not in input alphabet: ${argInputSeq}"))
+      throw BadInputException(
+        s"Input sequence contains element(s) not in input alphabet, argInputSequence: $argInputSeq, inputAlphabet: $inputAlphabet."
+      )
     else
-      Success({
-        inputSequence = argInputSeq.toList
-        pendingInput = true
-      })
+      inputSequence = argInputSeq.toList
+      pendingInput = true
 
-  def getNextInputToken: Try[Char] =
-    if inputSequence.isEmpty then Failure(Exception("InputSequence is empty !"))
-    else
-      val token = inputSequence.head
-      inputSequence = inputSequence.slice(1, inputSequence.size)
-      if inputSequence.isEmpty then pendingInput = false
-      Success(token)
+  def getNextInputToken: Char =
+    val token = inputSequence.head
+    inputSequence = inputSequence.slice(1, inputSequence.size)
+    if inputSequence.isEmpty then pendingInput = false
+    token
 
-  def nonDeterministicConsume: Unit =
+  def nonDeterministicConsume : Tuple2[String,List[Transition]] =
     machineTrace = List.empty
     producedOutput = List.empty
     while pendingInput do
-      for
-        triggerChar         <- getNextInputToken
-        possibleTransitions <- getApplicableTransitions(currentState, triggerChar)
-        actualTransition    <- chooseTransition(this, possibleTransitions)
-      yield takeTransition(actualTransition)
-  // arghhh i hate this
+      try
+        val possibleTransitions = getApplicableTransitionsFrom(currentState, getNextInputToken)
+        val actualTransition    = chooseTransition(this, possibleTransitions)
+        takeTransition(actualTransition)
+      catch
+        case ex: (NoTransitionFound | TransitionNotApplicable) => println(ex.getMessage)
+        case ex: Exception                                     => println(ex.getMessage)
+        
+    (producedOutput.mkString, machineTrace)
 
-  def takeTransition(argTransition: Transition): Unit =
+  private def takeTransition(argTransition: Transition): Unit =
     argTransition.setTaken
     currentState = argTransition.tranditionDest
     machineTrace = machineTrace :+ argTransition
     processTransition(argTransition)
 
-  def processTransition(argTransition: Transition): Unit =
+  private def processTransition(argTransition: Transition): Unit =
     producedOutput = producedOutput :+ argTransition.transitionOutput
     val sourceName = argTransition.transitionSource.getName
     val destName   = argTransition.tranditionDest.getName
