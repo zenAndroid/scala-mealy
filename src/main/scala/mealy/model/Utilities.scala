@@ -1,41 +1,36 @@
 package mealy.model
 
-import scala.util.{Try, Success, Failure}
+class BadInputException(msg: String) extends Exception(msg) {}
+class NoLastChange(msg: String) extends Exception(msg) {}
+class NoPendingInput(msg: String) extends Exception(msg) {}
+class NoTransitionFound(msg: String) extends Exception(msg) {}
+class StateNotFound(msg: String) extends Exception(msg) {}
+class TransitionNotApplicable(msg: String) extends Exception(msg) {}
+class TransitionNotFound(msg: String) extends Exception(msg) {}
 
-def getApplicableTransitions(
-    argState: State,
-    triggerChar: Char
-): Try[List[Transition]] =
+def getApplicableTransitionsFrom(argState: State, triggerChar: Char): List[Transition] =
+
   def filterPredicate(transition: Transition): Boolean =
-    transition.isValid && transition.isTriggeredBy(
-      triggerChar
-    ) && transition.transitionSource.getName == argState.getName
+    transition.isValid && transition.isTriggeredBy(triggerChar)
+
   val retVal = argState.getOutgoing.filter(filterPredicate)
   if retVal.isEmpty then
-    val errorMsg =
-      s"No transition found from this state: $argState, trigger: $triggerChar."
-    Failure(NoTransitionFound(errorMsg))
-  else Success(retVal)
+    throw TransitionNotFound(s"No transition found from this state $argState under this trigger: $triggerChar")
+  else retVal
 
-def getStateByName(argStateName: String, stateArray: List[State]): Try[State] =
+def getStateByName(argStateName: String, stateArray: List[State]): State =
   val filteredStateArray = stateArray.filter(_.getName == argStateName)
-  if filteredStateArray.isEmpty then
-    val errorMsg =
-      s"State not found: getStateByName: $argStateName, within this array: $stateArray"
-    Failure(StateNotFound(errorMsg))
-  else Success(filteredStateArray.head)
+  if filteredStateArray.isEmpty then throw new StateNotFound(s"State not found: getStateByName: $argStateName.")
+  else filteredStateArray.head
 
-def chooseTransition(
-    machine: Machine,
-    argTransition: List[Transition]
-): Try[Transition] =
+def chooseTransition(machine: Machine, argTransition: List[Transition]): Transition =
   if argTransition.isEmpty then
-    val errorMsg =
-      s"No transitions found from the current state, ${machine.getCurrentState}, argTransition: ${argTransition}"
-    Failure(NoTransitionFound(errorMsg))
+    throw NoTransitionFound(
+      s"No transitions found from the current state, ${machine.getCurrentState}, argTransition: $argTransition"
+    )
   else
     val randomIndex = scala.util.Random.nextInt(argTransition.size)
-    Success(argTransition(randomIndex))
+    argTransition(randomIndex)
 
 def getNDMachine: Machine =
   val s1 = new State("s1")
