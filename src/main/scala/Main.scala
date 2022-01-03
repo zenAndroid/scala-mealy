@@ -3,12 +3,12 @@ import scala.util.Failure
 import scala.util.Success
 
 @main def hello: Unit =
-  val init = new State
+  val init       = new State
   val anotherOne = new State
-  val trann = new Transition('a', '1', init, anotherOne)
-  val abcde = new Transition('b', '2', anotherOne, init)
-  val thirf = new Transition('b', '4', anotherOne, init)
-  val forth = new Transition('b', '5', anotherOne, init)
+  val trann      = new Transition('a', '1', init, anotherOne)
+  val abcde      = new Transition('b', '2', anotherOne, init)
+  val thirf      = new Transition('b', '4', anotherOne, init)
+  val forth      = new Transition('b', '5', anotherOne, init)
 
   val mach = new Machine(
     List(init, anotherOne),
@@ -23,6 +23,6 @@ import scala.util.Success
 
   // println
   val mach2 = getNDMachine
-  mach2 setInputSequence "abab"
+  mach2 setInputSequence "ababk"
   // println(mach2.toDot)
   mach2.nonDeterministicConsume

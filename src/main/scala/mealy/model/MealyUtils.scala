@@ -14,7 +14,7 @@ def getApplicableTransitions(
   if retVal.isEmpty then
     val errorMsg =
       s"No transition found from this state: $argState, trigger: $triggerChar."
-    Failure(new NoTransitionFound(errorMsg))
+    Failure(NoTransitionFound(errorMsg))
   else Success(retVal)
 
 def getStateByName(argStateName: String, stateArray: List[State]): Try[State] =
@@ -22,7 +22,7 @@ def getStateByName(argStateName: String, stateArray: List[State]): Try[State] =
   if filteredStateArray.isEmpty then
     val errorMsg =
       s"State not found: getStateByName: $argStateName, within this array: $stateArray"
-    Failure(new StateNotFound(errorMsg))
+    Failure(StateNotFound(errorMsg))
   else Success(filteredStateArray.head)
 
 def chooseTransition(
@@ -30,11 +30,9 @@ def chooseTransition(
     argTransition: List[Transition]
 ): Try[Transition] =
   if argTransition.isEmpty then
-    Failure(
-      new NoTransitionFound(
-        s"No transitions found from the current state, ${machine.getCurrentState}, argTransition: ${argTransition}"
-      )
-    )
+    val errorMsg =
+      s"No transitions found from the current state, ${machine.getCurrentState}, argTransition: ${argTransition}"
+    Failure(NoTransitionFound(errorMsg))
   else
     val randomIndex = scala.util.Random.nextInt(argTransition.size)
     Success(argTransition(randomIndex))
