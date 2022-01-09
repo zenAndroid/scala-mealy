@@ -8,11 +8,11 @@ class State(
 
   if stateName.equals("") then stateName = "q" + currentId.toString
 
-  def getName: String = stateName
-  def getOutgoing: List[Transition] = outGoing
-  def getIncoming: List[Transition] = inComing
-  def addIncominTransition(t: Transition): Unit = inComing = inComing :+ t
-  def addOutgoingTransition(t: Transition): Unit = outGoing = outGoing :+ t
+  def getName                              = stateName
+  def getOutgoing                          = outGoing
+  def getIncoming                          = inComing
+  def addIncominTransition(t: Transition)  = inComing = inComing :+ t
+  def addOutgoingTransition(t: Transition) = outGoing = outGoing :+ t
 
   override def toString: String =
     s"State{name = ${stateName}, inComing = ${inComing}, outGoing = ${outGoing}}"

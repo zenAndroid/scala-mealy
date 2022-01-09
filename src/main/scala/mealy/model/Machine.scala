@@ -17,21 +17,21 @@ class Machine(
     transition.tranditionDest.addIncominTransition(transition)
 
   /* Getters for fields */
-  def machineStates: List[State]              = states
-  def machineInitialState: State              = initialState
-  def machineInputAlphabet: Set[Char]         = inputAlphabet
-  def machineOutputAlphabet: Set[Char]        = outputAlphabet
-  def getMachineTransitions: List[Transition] = machineTransitions
-  def getProducedOutput: List[Char]           = producedOutput
-  def getTrace: List[Transition]              = machineTrace
-  def getPendingInput: Boolean                = pendingInput
-  def getInputSequence: List[Char]            = inputSequence
-  def getCurrentState: State                  = currentState
+  def machineStates         = states
+  def machineInitialState   = initialState
+  def machineInputAlphabet  = inputAlphabet
+  def machineOutputAlphabet = outputAlphabet
+  def getMachineTransitions = machineTransitions
+  def getProducedOutput     = producedOutput
+  def getTrace              = machineTrace
+  def getPendingInput       = pendingInput
+  def getInputSequence      = inputSequence
+  def getCurrentState       = currentState
 
   /* Setters for secondary fields */
-  def setProduced(argList: List[Char]): Unit     = producedOutput = argList
-  def setTrace(argTrace: List[Transition]): Unit = machineTrace = argTrace
-  def setCurrent(argState: State): Unit          = currentState = argState
+  def setProduced(argList: List[Char])     = producedOutput = argList
+  def setTrace(argTrace: List[Transition]) = machineTrace = argTrace
+  def setCurrent(argState: State)          = currentState = argState
 
   def setInputSequence(argInputSeq: String) =
     if !argInputSeq.map(inputAlphabet.contains(_)).reduce(_ & _) then
@@ -48,7 +48,7 @@ class Machine(
     if inputSequence.isEmpty then pendingInput = false
     token
 
-  def consume: Tuple2[List[Char], List[Transition]] =
+  def consume =
     machineTrace = List.empty
     producedOutput = List.empty
     while pendingInput do
@@ -66,26 +66,22 @@ class Machine(
     try
       setInputSequence(argInput)
       consume
-    catch
-      case ex: BadInputException => println(ex.getMessage)
-    
+    catch case ex: BadInputException => println(ex.getMessage)
+
     // Surprising that i need to explicitly mention this tuple
     // i thought the function before the catch would take care of this
     (producedOutput, machineTrace)
-
 
   def consumeToken =
     if pendingInput then
       try
         val possibleTransitions = getApplicableTransitionsFrom(currentState, getNextInputToken)
-        val actualTransition = chooseTransition(this, possibleTransitions)
+        val actualTransition    = chooseTransition(this, possibleTransitions)
         takeTransition(actualTransition)
       catch
         case ex: (NoTransitionFound | TransitionNotApplicable) => println(ex.getMessage)
         case ex: Exception                                     => println(ex.getMessage)
-    else
-      throw NoPendingInput("Cannot consume token: machine not pending.")
-
+    else throw NoPendingInput("Cannot consume token: machine not pending.")
 
   private def takeTransition(argTransition: Transition): Unit =
     argTransition.setTaken
